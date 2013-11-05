@@ -49,7 +49,6 @@ def get_values_at_lat_lon(lat,lon)
   end
   time_stamp = time_nowish.strftime("%FT%H:00:00Z")
  
-  
   pixels = []
   (0..5).each do | hr |
     forecast =  "%2B"+hr.to_s # %2B = + thus "%2B0" = "+0"
@@ -65,9 +64,6 @@ def get_values_at_lat_lon(lat,lon)
     end
 
     image = ChunkyPNG::Image.from_file(filename)
-    
-    puts tile_coords.inspect
-
     pixels << ChunkyPNG::Color.to_truecolor_bytes(image[tile_pixel_hash[:pixel][0],tile_pixel_hash[:pixel][1]]) #pixel value at that location
   end
 
