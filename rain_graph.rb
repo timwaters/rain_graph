@@ -73,9 +73,20 @@ get '/forecast/:place' do
     [254,0,254]=>32,
     [999,999,999]=>48
   }
-  #Leeds =  53.7997° N, 1.5492
 
-  pixel_values = get_values_at_lat_lon(53.799, -1.549)
+ if @place == "leeds"
+   ll = {:lat => 53.7997, :lon=>-1.5492}
+ elsif @place == "manchester"
+   ll = {:lat => 53.4667, :lon => -2.2333}
+ else
+   @place = "london"
+   ll = {:lat => 52.507, :lon => -0.1275} 
+ end
+
+  pixel_values = get_values_at_lat_lon(ll[:lat], ll[:lon])
+  #Leeds =  53.7997° N, 1.5492
+  #Manchester  = 53.4667° N, 2.2333° W
+  #pixel_values = get_values_at_lat_lon(53.4667, -2.233)
   #puts pixel_values.inspect
 
   rainfall = []
