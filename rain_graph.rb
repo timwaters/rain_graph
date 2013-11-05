@@ -4,7 +4,6 @@
 #
 # 
 require 'sinatra'
-require 'simple_mercator_location'
 require 'chunky_png'
 require 'open-uri'
 require 'digest/md5'
@@ -22,11 +21,27 @@ def get_tile_url(tile_coords, time_stamp, forecast)
   return tile_url
 end
 
-def get_values_at_lat_lon(lat,lon)
-  location = SimpleMercatorLocation.new({:lat => lat, :lon => lon})
+def get_pixel_xy(lat, lon, zoom)
+  mapSize = (2 ** zoom) * 256
 
-  xy = location.zoom_at(ZOOM).to_px
-  tile_coords = location.zoom_at(ZOOM).to_tile
+  latitude = lat
+  longitude = lon
+
+  point_x = (longitude + 180.0) / 360.0 * (1 << zoom)
+  point_y = (1.0 - Math.log(Math.tan(latitude * Math::PI / 180.0) + 1.0 / Math.cos(latitude * Math::PI / 180.0)) / Math::PI) / 2.0 * (1 << zoom)
+  tilex = point_x.to_i
+  tiley = point_y.to_i
+  pixelX = (tilex * 256) + ((point_x - tilex) * 256)
+  pixelY = (tiley * 256) + ((point_y - tiley) * 256)
+ 
+  return {:tile => [tilex, tiley], :pixel =>[ (pixelX.modulo(1)*256).to_i, (pixelY.modulo(1)*256).to_i] }
+end
+
+
+def get_values_at_lat_lon(lat,lon)
+  tile_pixel_hash = get_pixel_xy(lat,lon, ZOOM)
+  puts tile_pixel_hash.inspect
+  tile_coords = tile_pixel_hash[:tile]
 
   time_nowish = Time.now
   if time_nowish.min < 20
@@ -53,7 +68,7 @@ def get_values_at_lat_lon(lat,lon)
     
     puts tile_coords.inspect
 
-    pixels << ChunkyPNG::Color.to_truecolor_bytes(image[tile_coords[0],tile_coords[1]]) #pixel value at that location
+    pixels << ChunkyPNG::Color.to_truecolor_bytes(image[tile_pixel_hash[:pixel][0],tile_pixel_hash[:pixel][1]]) #pixel value at that location
   end
 
   return pixels
@@ -74,7 +89,9 @@ get '/forecast/:place' do
     [999,999,999]=>48
   }
 
- if @place == "leeds"
+ if @place == "custom" && params[:lat] && params[:lon]
+   ll = {:lat => params[:lat].to_i, :lon => params[:lon].to_i}
+ elsif @place == "leeds"
    ll = {:lat => 53.7997, :lon=>-1.5492}
  elsif @place == "manchester"
    ll = {:lat => 53.4667, :lon => -2.2333}
@@ -82,18 +99,15 @@ get '/forecast/:place' do
    @place = "london"
    ll = {:lat => 52.507, :lon => -0.1275} 
  end
-
+  puts ll.inspect
   pixel_values = get_values_at_lat_lon(ll[:lat], ll[:lon])
-  #Leeds =  53.7997° N, 1.5492
-  #Manchester  = 53.4667° N, 2.2333° W
-  #pixel_values = get_values_at_lat_lon(53.4667, -2.233)
   #puts pixel_values.inspect
-
+  
   rainfall = []
   pixel_values.each_with_index do | px, i |
     if lookup.keys.include? px
       rainfall << lookup[px]
-      puts "#{i}: #{lookup[px]}"
+      #puts "#{i}: #{lookup[px]}"
     else
       puts "unknown" + px
     end
