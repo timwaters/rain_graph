@@ -109,6 +109,7 @@ get '/forecast/:place' do
     end
   end
   
+  @ll = ll
   @rainfall = rainfall
   
   erb :forecast

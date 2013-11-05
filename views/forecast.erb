@@ -1,6 +1,9 @@
 <script src="/Chart.min.js"></script>
 <h1>Rain Graph for <%= @place %></h1>
-<%= @rainfall.to_s %>
+<p>
+Lat: <%= @ll[:lat] %>, Lon:<%= @ll[:lon] %> <br />
+<!-- <%= @rainfall.to_s %> -->
+</p>
 <canvas id="myChart" width="400" height="300"></canvas>
 <script type="text/javascript">
   var options = {
