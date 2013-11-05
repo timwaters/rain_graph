@@ -3,11 +3,11 @@
 # for any uk lat and lon, will create a graph showing predicted rainfall
 #
 # 
-
 require 'sinatra'
 require 'simple_mercator_location'
 require 'chunky_png'
 require 'open-uri'
+require 'digest/md5'
 
 ZOOM =  9
 API_KEY = ENV["API_KEY"]
@@ -39,15 +39,23 @@ def get_values_at_lat_lon(lat,lon)
   (0..5).each do | hr |
     forecast =  "%2B"+hr.to_s # %2B = + thus "%2B0" = "+0"
     tile_url = get_tile_url(tile_coords, time_stamp, forecast) 
-    #puts tile_url 
-    image = ChunkyPNG::Image.from_io(open(tile_url))
+   
+    filename = File.join("cache", Digest::MD5.hexdigest(tile_url))
+    
+    unless File.exists? filename
+      require "open-uri"
+      File.open(filename, 'wb') do |fo|
+        fo.write open(tile_url).read 
+      end
+    end
+
+    image = ChunkyPNG::Image.from_file(filename)
+    
     puts tile_coords.inspect
 
     pixels << ChunkyPNG::Color.to_truecolor_bytes(image[tile_coords[0],tile_coords[1]]) #pixel value at that location
   end
 
-  #puts pixels.inspect
-  
   return pixels
 end
 
@@ -79,8 +87,6 @@ get '/forecast/:place' do
       puts "unknown" + px
     end
   end
-
-  #puts rainfall.inspect
   
   @rainfall = rainfall
   
