@@ -4,14 +4,17 @@
 #
 # 
 
-
-require 'rubygems'
+require 'sinatra'
 require 'simple_mercator_location'
 require 'chunky_png'
 require 'open-uri'
 
 ZOOM =  9
 API_KEY = ENV["API_KEY"]
+
+get '/' do
+ erb :index
+end
 
 
 def get_tile_url(tile_coords, time_stamp, forecast)
@@ -33,7 +36,7 @@ def get_values_at_lat_lon(lat,lon)
  
   
   pixels = []
-  (0..4).each do | hr |
+  (0..5).each do | hr |
     forecast =  "%2B"+hr.to_s # %2B = + thus "%2B0" = "+0"
     tile_url = get_tile_url(tile_coords, time_stamp, forecast) 
     #puts tile_url 
@@ -48,30 +51,38 @@ def get_values_at_lat_lon(lat,lon)
   return pixels
 end
 
-lookup = {
-  [0,0,0] => 0,
-  [0,0,254] => 0.5,
-  [50,101,254] => 1,
-  [127,127,0] => 2,
-  [254,203,0]=> 4,
-  [254,152,0]=>8,
-  [254,0,0] => 16,
-  [254,0,254]=>32,
-  [999,999,999]=>48
-}
+get '/forecast/:place' do
+  @place = params[:place]
 
-pixel_values = get_values_at_lat_lon(49.08, -8.62)
-puts pixel_values.inspect
+  lookup = {
+    [0,0,0] => 0,
+    [0,0,254] => 0.5,
+    [50,101,254] => 1,
+    [127,127,0] => 2,
+    [254,203,0]=> 4,
+    [254,152,0]=>8,
+    [254,0,0] => 16,
+    [254,0,254]=>32,
+    [999,999,999]=>48
+  }
+  #Leeds =  53.7997° N, 1.5492
 
-rainfall = []
-pixel_values.each_with_index do | px, i |
-  if lookup.keys.include? px
-    rainfall << lookup[px]
-    puts "#{i}: #{lookup[px]}"
-  else
-    puts "unknown" + px
+  pixel_values = get_values_at_lat_lon(53.799, -1.549)
+  #puts pixel_values.inspect
+
+  rainfall = []
+  pixel_values.each_with_index do | px, i |
+    if lookup.keys.include? px
+      rainfall << lookup[px]
+      puts "#{i}: #{lookup[px]}"
+    else
+      puts "unknown" + px
+    end
   end
+
+  #puts rainfall.inspect
+  
+  @rainfall = rainfall
+  
+  erb :forecast
 end
-
-puts rainfall.inspect
-
