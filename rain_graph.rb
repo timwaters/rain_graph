@@ -4,12 +4,6 @@
 #
 # 
 
-# lat lon to pixel for zoom level
-# get value for pixel level
-# get tiles for now, 1hr, 2hr, 3hr
-# get value for pixel
-# create graph
-# output graph
 
 require 'rubygems'
 require 'simple_mercator_location'
@@ -21,12 +15,11 @@ API_KEY = ENV["API_KEY"]
 
 
 def get_tile_url(tile_coords, time_stamp, forecast)
-
-  tile_url = "http://www.metoffice.gov.uk/public/data/LayerCache/UKPPNOW/ItemBbox/Precipitation_Rate/#{tile_coords[0]}/#{tile_coords[1]}/#{ZOOM}/png?RUN=#{time_stamp}&FORECAST=#{forecast}&styles=Bitmap+Blue-Pale+blue+gradient+0.01+to+greater+than+32mm%2Fhr&api_key=#{API_KEY}"
+  tile_url = "http://www.metoffice.gov.uk/public/data/LayerCache/UKPPNOW/ItemBbox/Precipitation_Rate/#{tile_coords[0]}/#{tile_coords[1]}/#{ZOOM}/png?RUN=#{time_stamp}&FORECAST=#{forecast}&styles=Bitmap+Blue-Pale+blue+gradient+0.01+to+greater+than+32mm%2Fhr&key=#{API_KEY}"
   return tile_url
 end
 
-def get_value_at_lat_lon(lat,lon)
+def get_values_at_lat_lon(lat,lon)
   location = SimpleMercatorLocation.new({:lat => lat, :lon => lon})
 
   xy = location.zoom_at(ZOOM).to_px
@@ -41,19 +34,16 @@ def get_value_at_lat_lon(lat,lon)
   
   pixels = []
   (0..4).each do | hr |
-    
     forecast =  "%2B"+hr.to_s # %2B = + thus "%2B0" = "+0"
-
     tile_url = get_tile_url(tile_coords, time_stamp, forecast) 
-    puts tile_url 
-  
+    #puts tile_url 
     image = ChunkyPNG::Image.from_io(open(tile_url))
     puts tile_coords.inspect
 
     pixels << ChunkyPNG::Color.to_truecolor_bytes(image[tile_coords[0],tile_coords[1]]) #pixel value at that location
   end
 
-  puts pixels.inspect
+  #puts pixels.inspect
   
   return pixels
 end
@@ -70,7 +60,7 @@ lookup = {
   [999,999,999]=>48
 }
 
-pixel_values = get_value_at_lat_lon(49.08, -8.62)
+pixel_values = get_values_at_lat_lon(49.08, -8.62)
 puts pixel_values.inspect
 
 rainfall = []
