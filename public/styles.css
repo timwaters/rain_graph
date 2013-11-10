@@ -1,0 +1,24 @@
+body{ 
+  font-family: "Verdana", "Arial", "Helvetica", "sans-serif";
+}
+
+div#footer {
+ padding-top: 1em;
+ font-size: smaller;
+ color: gray;
+}
+
+
+.forecast_text {
+  width: 600px;
+}
+
+.headline {
+  font-style: italic;
+}
+.nextperiod{
+  font-size: smaller;
+}
+
+
+
