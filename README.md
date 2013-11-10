@@ -1,4 +1,22 @@
-rain_graph
+Rain Graph
 ==========
 
-graphs of predicted rain using the metoffice datapoint service - showing precipitation for next few hours for any UK location 
+This is a Ruby Sinatra Web Application
+
+http://rain-graph.herokuapp.com/
+
+This application shows a graph of precipitation each hour for the next few hours.
+It uses the very good metoffice datapoint service: http://metoffice.gov.uk/datapoint
+
+It can be used for any UK location, although certain currently hardcoded versions also have text forecasts.
+
+It caches responses from the API - to avoid hitting the service too much, and also because the service only updates once a hour.
+
+
+Things I would like to do:
+
+* Dynamically determine the text forecasts for region that the chosen point is in
+* Android app it
+* Show the precipation forecast map images on mouse hover over points in the graph
+* Show plain terrain basemap underneath
+
